@@ -7,6 +7,10 @@ const StudentSchema = new mongoose.Schema({
   email: String,
   password: String,
   name: String,
+  rollNumber: String,
+  course: String,
+  year: String,
+  division: String,
 });
 
 const Student = mongoose.models.Student || mongoose.model('Student', StudentSchema);
@@ -26,8 +30,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true, student: { email: student.email, name: student.name } });
+    return NextResponse.json({
+      success: true,
+      student: {
+        email: student.email,
+        name: student.name,
+        fullName: student.name,
+        rollNumber: student.rollNumber,
+        course: student.course,
+        year: student.year,
+        division: student.division,
+      }
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error('Login error:', error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

@@ -55,7 +55,7 @@ export function StudentLoginForm() {
         return
       }
 
-      saveStudentSession(data.student.name, data.student.email)
+      saveStudentSession(data.student)
       toast({
         title: 'Success',
         description: `Welcome, ${data.student.name}!`,
