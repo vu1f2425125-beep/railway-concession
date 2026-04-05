@@ -43,22 +43,24 @@ export function AuthorityLoginForm() {
     }
 
     try {
-      // Check credentials against stored users
-      const users = JSON.parse(localStorage.getItem('authorityUsers') || '[]')
-      const user = users.find(
-        (u: any) => u.email === formData.email.trim() && u.password === formData.password
-      )
+      const response = await fetch('/api/authority/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email.trim(), password: formData.password }),
+      })
 
-      if (!user) {
-        setErrors({ password: 'Invalid email or password' })
+      const data = await response.json()
+
+      if (!response.ok) {
+        setErrors({ password: data.error || 'Invalid email or password' })
         setIsLoading(false)
         return
       }
 
-      saveAuthoritySession(user.name, user.email)
+      saveAuthoritySession(data.authority.name, data.authority.email)
       toast({
         title: 'Success',
-        description: `Welcome, ${user.name}! You have been logged in as an authority.`,
+        description: `Welcome, ${data.authority.name}! You have been logged in as an authority.`,
       })
       router.push('/authority/dashboard')
     } catch (error) {
@@ -135,9 +137,9 @@ export function AuthorityLoginForm() {
             )}
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700" 
+          <Button
+            type="submit"
+            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
             disabled={isLoading}
           >
             {isLoading ? 'Logging in...' : 'Login'}
