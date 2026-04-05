@@ -6,12 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { validateEmail, saveStudentSession } from '@/lib/auth-utils'
-import { StudentSession, Branch, Year } from '@/lib/types'
-import { Train } from 'lucide-react'
-
-const BRANCHES: Branch[] = ['Computer Engineering', 'Information Technology']
-const YEARS: Year[] = ['1st Year', '2nd Year', '3rd Year', '4th Year']
+import { saveStudentSession } from '@/lib/auth-utils'
+import { GraduationCap } from 'lucide-react'
 
 export function StudentLoginForm() {
   const [formData, setFormData] = useState({
@@ -32,8 +28,6 @@ export function StudentLoginForm() {
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required'
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Email must end with @pvppcoe.ac.in'
     }
 
     if (!formData.password.trim()) {
@@ -47,31 +41,24 @@ export function StudentLoginForm() {
     }
 
     try {
-      // Check credentials against stored users
-      const users = JSON.parse(localStorage.getItem('studentUsers') || '[]')
-      const user = users.find(
-        (u: any) => u.email === formData.email.trim() && u.password === formData.password
-      )
+      const response = await fetch('/api/student/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email.trim(), password: formData.password }),
+      })
 
-      if (!user) {
-        setErrors({ password: 'Invalid email or password' })
+      const data = await response.json()
+
+      if (!response.ok) {
+        setErrors({ password: data.error || 'Invalid email or password' })
         setIsLoading(false)
         return
       }
 
-      const session: StudentSession = {
-        fullName: user.fullName,
-        email: user.email,
-        branch: user.branch,
-        year: user.year,
-        division: user.division,
-        mobileNumber: user.mobileNumber,
-      }
-
-      saveStudentSession(session)
+      saveStudentSession(data.student.name, data.student.email)
       toast({
         title: 'Success',
-        description: `Welcome, ${user.fullName}! You have been logged in.`,
+        description: `Welcome, ${data.student.name}!`,
       })
       router.push('/student/dashboard')
     } catch (error) {
@@ -98,10 +85,10 @@ export function StudentLoginForm() {
       <CardHeader className="space-y-2 text-center pb-6">
         <div className="flex justify-center mb-3">
           <div className="rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 p-3 shadow-lg">
-            <Train className="h-6 w-6 text-white" />
+            <GraduationCap className="h-6 w-6 text-white" />
           </div>
         </div>
-        <CardTitle className="text-3xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+        <CardTitle className="text-3xl bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent">
           Student Login
         </CardTitle>
         <CardDescription className="text-base">
@@ -148,9 +135,9 @@ export function StudentLoginForm() {
             )}
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+          <Button
+            type="submit"
+            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
             disabled={isLoading}
           >
             {isLoading ? 'Logging in...' : 'Login'}
