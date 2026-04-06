@@ -32,28 +32,43 @@ export default function AuthorityDashboard() {
       setAuthority(session)
     }
 
-    // Load applications from localStorage
-    const savedApplications = localStorage.getItem('applications')
-    if (savedApplications) {
-      setApplications(JSON.parse(savedApplications))
-    }
+    // Load applications from MongoDB
+    fetchApplications()
   }, [router])
+
+  const fetchApplications = async () => {
+    try {
+      const response = await fetch('/api/authority/applications')
+      const data = await response.json()
+      if (data.success) {
+        setApplications(data.applications)
+      }
+    } catch (error) {
+      console.error('Failed to fetch applications:', error)
+    }
+  }
 
   const handleLogout = () => {
     logout()
     router.push('/')
   }
 
-  const handleApplicationUpdate = (updatedApplication: Application) => {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === updatedApplication.id ? updatedApplication : app))
-    )
-    // Update localStorage
-    const applications = JSON.parse(localStorage.getItem('applications') || '[]')
-    const updatedApplications = applications.map((app: Application) =>
-      app.id === updatedApplication.id ? updatedApplication : app
-    )
-    localStorage.setItem('applications', JSON.stringify(updatedApplications))
+  const handleApplicationUpdate = async (updatedApplication: Application) => {
+    try {
+      const response = await fetch('/api/authority/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: updatedApplication.id, status: updatedApplication.status }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        setApplications((prev) =>
+          prev.map((app) => (app.id === updatedApplication.id ? updatedApplication : app))
+        )
+      }
+    } catch (error) {
+      console.error('Failed to update application:', error)
+    }
   }
 
   if (!isMounted || !authority) {
