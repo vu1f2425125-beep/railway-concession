@@ -23,10 +23,9 @@ export function ApplicationsTable({ applications, onApplicationUpdate }: Applica
   const filteredApplications = useMemo(() => {
     return applications.filter((app) => {
       const matchesSearch =
-        app.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        app.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
+        (app.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (app.rollNumber || '').toLowerCase().includes(searchTerm.toLowerCase())
       const matchesStatus = statusFilter === 'All' || app.status === statusFilter
-
       return matchesSearch && matchesStatus
     })
   }, [applications, searchTerm, statusFilter])
@@ -62,7 +61,6 @@ export function ApplicationsTable({ applications, onApplicationUpdate }: Applica
           <CardDescription>Review and manage student applications</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Filters */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -88,7 +86,6 @@ export function ApplicationsTable({ applications, onApplicationUpdate }: Applica
             </div>
           </div>
 
-          {/* Table */}
           {filteredApplications.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
@@ -163,7 +160,6 @@ export function ApplicationsTable({ applications, onApplicationUpdate }: Applica
         </CardContent>
       </Card>
 
-      {/* Actions Modal */}
       {selectedApplication && (
         <ActionsModal
           application={selectedApplication}
