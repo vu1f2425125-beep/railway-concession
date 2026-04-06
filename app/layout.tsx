@@ -10,7 +10,6 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Railway Concession Management',
   description: 'Student railway concession management system for PVPP College of Engineering',
-  generator: 'v0.app',
   icons: {
     icon: [
       {
