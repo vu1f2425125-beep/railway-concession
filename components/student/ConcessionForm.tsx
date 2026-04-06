@@ -109,7 +109,6 @@ export function ConcessionForm({ student, onApplicationSubmit }: ConcessionFormP
         timestamp: new Date().toISOString(),
       }
 
-      // Save to MongoDB
       const response = await fetch('/api/student/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,4 +223,46 @@ export function ConcessionForm({ student, onApplicationSubmit }: ConcessionFormP
             </div>
             {formData.startDate && formData.endDate && (
               <div className="flex items-center gap-2 p-3 bg-secondary rounded-lg text-sm text-foreground">
-                <ArrowRight className="h-4 w-4 text-mu
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <span>Duration: {new Date(formData.startDate).toLocaleDateString()} → {new Date(formData.endDate).toLocaleDateString()}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-semibold text-foreground">Travel Preferences</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">Travel Class</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-secondary transition">
+                    <input type="radio" name="travelClass" value="First" checked={formData.travelClass === 'First'} onChange={(e) => handleRadioChange('travelClass', e.target.value)} disabled={isLoading} />
+                    <span className="text-sm font-medium">First Class</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-secondary transition">
+                    <input type="radio" name="travelClass" value="Second" checked={formData.travelClass === 'Second'} onChange={(e) => handleRadioChange('travelClass', e.target.value)} disabled={isLoading} />
+                    <span className="text-sm font-medium">Second Class</span>
+                  </label>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="purposeOfTravel" className="text-sm font-medium text-foreground">Purpose of Travel</label>
+                <select id="purposeOfTravel" name="purposeOfTravel" value={formData.purposeOfTravel} onChange={handleInputChange} disabled={isLoading} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <option value="Education">Education</option>
+                  <option value="Research">Research</option>
+                  <option value="Internship">Internship</option>
+                  <option value="Competition">Competition</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading} size="lg">
+            {isLoading ? 'Submitting...' : 'Submit Application'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
