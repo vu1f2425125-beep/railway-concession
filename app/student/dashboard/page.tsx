@@ -38,14 +38,19 @@ export default function StudentDashboard() {
       fetchApplications(session.email)
     }
 
-    // Load authority notice from localStorage
-    const savedNotice = localStorage.getItem('authorityNotice')
-    if (savedNotice) {
-      const notice = JSON.parse(savedNotice)
-      if (notice.isActive) {
-        setAuthorityNotice(notice)
+    // Load authority notice from MongoDB — visible on ALL devices
+    const fetchNotice = async () => {
+      try {
+        const res = await fetch('/api/notice')
+        const data = await res.json()
+        if (data.success && data.notice && data.notice.isActive) {
+          setAuthorityNotice(data.notice)
+        }
+      } catch (error) {
+        console.error('Failed to fetch notice:', error)
       }
     }
+    fetchNotice()
   }, [router])
 
   const fetchApplications = async (email: string) => {

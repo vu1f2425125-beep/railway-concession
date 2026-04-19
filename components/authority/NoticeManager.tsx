@@ -14,39 +14,71 @@ export function NoticeManager({ onNoticeChange }: NoticeManagerProps) {
   const [notice, setNotice] = useState<AuthorityNotice | null>(null)
   const [messageInput, setMessageInput] = useState('')
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Load notice from localStorage on mount
   useEffect(() => {
-    const savedNotice = localStorage.getItem('authorityNotice')
-    if (savedNotice) {
-      const parsedNotice = JSON.parse(savedNotice)
-      setNotice(parsedNotice)
+    const fetchNotice = async () => {
+      try {
+        const res = await fetch('/api/notice')
+        const data = await res.json()
+        if (data.success && data.notice) {
+          setNotice(data.notice)
+          onNoticeChange?.(data.notice)
+        }
+      } catch (error) {
+        console.error('Failed to fetch notice:', error)
+      }
     }
+    fetchNotice()
   }, [])
 
-  const handlePostNotice = () => {
+  const handlePostNotice = async () => {
     if (!messageInput.trim()) {
       alert('Please enter a notice message')
       return
     }
-
-    const newNotice: AuthorityNotice = {
-      id: `NOTICE-${Date.now()}`,
-      message: messageInput.trim(),
-      isActive: true,
-      createdAt: new Date().toISOString(),
+    setIsLoading(true)
+    try {
+      const newNotice: AuthorityNotice = {
+        id: `NOTICE-${Date.now()}`,
+        message: messageInput.trim(),
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      }
+      const res = await fetch('/api/notice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newNotice),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setNotice(newNotice)
+        setMessageInput('')
+        onNoticeChange?.(newNotice)
+      }
+    } catch (error) {
+      console.error('Failed to post notice:', error)
+      alert('Failed to post notice. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
-
-    setNotice(newNotice)
-    localStorage.setItem('authorityNotice', JSON.stringify(newNotice))
-    setMessageInput('')
-    onNoticeChange?.(newNotice)
   }
 
-  const handleRemoveNotice = () => {
-    setNotice(null)
-    localStorage.removeItem('authorityNotice')
-    onNoticeChange?.(null)
+  const handleRemoveNotice = async () => {
+    setIsLoading(true)
+    try {
+      const res = await fetch('/api/notice', { method: 'DELETE' })
+      const data = await res.json()
+      if (data.success) {
+        setNotice(null)
+        onNoticeChange?.(null)
+      }
+    } catch (error) {
+      console.error('Failed to clear notice:', error)
+      alert('Failed to clear notice. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -60,10 +92,7 @@ export function NoticeManager({ onNoticeChange }: NoticeManagerProps) {
               <CardDescription>Inform students about your availability</CardDescription>
             </div>
           </div>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-sm text-primary hover:underline"
-          >
+          <button onClick={() => setIsExpanded(!isExpanded)} className="text-sm text-primary hover:underline">
             {isExpanded ? 'Collapse' : 'Expand'}
           </button>
         </div>
@@ -72,9 +101,7 @@ export function NoticeManager({ onNoticeChange }: NoticeManagerProps) {
       {isExpanded && (
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Notice Message *
-            </label>
+            <label className="text-sm font-medium text-foreground">Notice Message *</label>
             <textarea
               placeholder="e.g., I am not available today to collect concession forms. Please visit tomorrow."
               value={messageInput}
@@ -83,28 +110,22 @@ export function NoticeManager({ onNoticeChange }: NoticeManagerProps) {
               className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
-
           <div className="flex gap-2">
-            <Button onClick={handlePostNotice} className="flex-1">
-              Post Notice
+            <Button onClick={handlePostNotice} className="flex-1" disabled={isLoading}>
+              {isLoading ? 'Posting...' : 'Post Notice'}
             </Button>
             {notice && (
-              <Button onClick={handleRemoveNotice} variant="outline" className="flex-1">
-                Clear Notice
+              <Button onClick={handleRemoveNotice} variant="outline" className="flex-1" disabled={isLoading}>
+                {isLoading ? 'Clearing...' : 'Clear Notice'}
               </Button>
             )}
           </div>
-
           {notice && (
             <div className="flex gap-3 p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
               <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">
-                  Active Notice
-                </p>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                  {notice.message}
-                </p>
+                <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">Active Notice</p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">{notice.message}</p>
               </div>
             </div>
           )}
